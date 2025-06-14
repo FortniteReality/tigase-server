@@ -6,6 +6,8 @@ Tigase Documentation
 Tigase Projects documentations
 -------------------------------------
 
+-  `Tigase Server <../../projects/tigase-server/en/latest/>`__ Main Tigase XMPP Server documentation
+
 Server Components
 ^^^^^^^^^^^^^^^^^
 
@@ -22,15 +24,12 @@ Server Components
 -  `Tigase Auditlog <../../projects/tigase-tigase-auditlog-2/en/latest/>`__ An implementation of Audit Log pattern functionality to log important events 
 -  `Tigase Workgroup Queues <../../projects/tigase-tigase-workgroup-queues/en/latest/>`__ Implementation of XEP-0142: Workgroup Queues
 -  `Tigase Databse Migrator <../../projects/tigase-database-migrator/en/latest/>`__ Component allowing migration of different types of data from various XMPP servers
--  `Tigase Extras AWS <../../projects/tigase-tigase-extras/en/latest/>`__ provides you with support for additional features and integrations with Amazon AWS.
--  `Tigase Extras LDAP Server <../../projects/tigase-tigase-extras-ldap/en/latest/>`__ provides you with basic LDAP server to allow for integration with software allowing for LDAP-based authentication.
+
 
 XMPP Clients
 ^^^^^^^^^^^^^^^^^
 
--  `SiskinIM <../../projects/tigase-siskin-im/en/latest/>`__ iOS XMPP Client
-
--  `BeagleIM <../../projects/tigase-beagle-im/en/latest/>`__ macOS XMPP Client
+-  `SiskinIM and BeagleIM <../../projects/tigase-siskin-im/en/latest/>`__ iOS XMPP Client
 
 -  `StorkIM <../../projects/tigase-stork/en/latest/>`__ android XMPP Client
 
@@ -67,14 +66,7 @@ Legacy documentation website
 -  `Legacy documentation website <https://docs-legacy.tigase.net/>`__ Our legacy documentation website which contains documentation for older versions of componetns and applications
 
 .. toctree::
-   :caption: Administration Guide
+   :caption: Tigase XMPP Server Distribution Administration Guide
    :maxdepth: 3
 
-   Tigase_Administration/index.rst
-
-
-.. toctree::
-   :caption: Development Guide
-   :maxdepth: 3
-
-   Tigase_Development/index.rst
+   Release_Notes/Tigase_Release_Notes

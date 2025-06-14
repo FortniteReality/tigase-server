@@ -16,7 +16,7 @@
 
 <p align="center">
   <img alt="Tigase Tigase Logo" src="https://github.com/tigase/website-assets/blob/master/tigase/images/tigase-logo.png?raw=true" width="25"/>
-  <a href='https://compliance.conversations.im/server/tigase.im'><img src='https://compliance.conversations.im/badge/tigase.im'></a> 
+  <a href='https://compliance.conversations.im/server/tigase.im'><img src='https://compliance.conversations.im/badge/tigase.im'></a>
   <a href='https://xmpp.net/result.php?domain=tigase.im&amp;type=client'><img src='https://xmpp.net/badge.php?domain=tigase.im' alt='xmpp.net score' /></a>
   <img src='https://img.shields.io/github/downloads/tigase/tigase-server/total' alt='GitHub All Releases' />
 </p>
@@ -34,14 +34,14 @@ Other Tigase projects related to XMPP:
 Tigase XMPP Server addons:
 * [MUC Component](https://github.com/tigase/tigase-muc) - Multi-User Chat: [XEP-0045](https://xmpp.org/extensions/xep-0045.html)
 * [PubSub Component](https://github.com/tigase/tigase-pubsub) - Publish-Subscribe: [XEP-0060](https://xmpp.org/extensions/xep-0060.html) and Personal Eventing Protocol: [XEP-0163](https://xmpp.org/extensions/xep-0163.html)
-* [Socks5 Proxy Component](https://github.com/tigase/tigase-socks5) - SOCKS5 Bytestreams: [XEP-0065](https://xmpp.org/extensions/xep-0065.html)
-* [STUN Component](https://github.com/tigase/tigase-stun) - [STUN](https://en.wikipedia.org/wiki/STUN) Component for Tigase
 * [HTTP API Component](https://github.com/tigase/tigase-http-api) - Component providing easy to use HTTP endpoints for server management and integration based on JDK built-in HTTP server.
+* [Message Archiving Component](https://github.com/tigase/tigase-message-archiving) - Component providing Message Archiving [XEP-0136](https://xmpp.org/extensions/xep-0136.html) and Message Archive Management [XEP-0313](https://xmpp.org/extensions/xep-0313.html) support.
 * [Jetty HTTP API Component](https://github.com/tigase/tigase-http-api-jetty) - High performance and high load component providing easy to use HTTP endpoints for server management and integration based on [Jetty HTTP Server](https://www.eclipse.org/jetty/).
 * [MongoDB Connector](https://github.com/tigase/tigase-mongodb) - Connector adding support for [MongoDB](https://www.mongodb.com) database to Tigase server.
-* [Message Archiving Component](https://github.com/tigase/tigase-message-archiving) - Component providing Message Archiving [XEP-0136](https://xmpp.org/extensions/xep-0136.html) and Message Archive Management [XEP-0313](https://xmpp.org/extensions/xep-0313.html) support.
+* [Socks5 Proxy Component](https://github.com/tigase/tigase-socks5) - SOCKS5 Bytestreams: [XEP-0065](https://xmpp.org/extensions/xep-0065.html)
+* [STUN Component](https://github.com/tigase/tigase-stun) - [STUN](https://en.wikipedia.org/wiki/STUN) Component for Tigase
 
-Tools: 
+Tools:
 * [Database Migrator Tool](https://github.com/tigase/tigase-database-migrator) - Tools helping with migration from other XMPP servers to Tigase based system.
 * [TTS-NG Test Suite](https://github.com/tigase/tigase-tts-ng) - Test Suite to run automated tests for the Tigase XMPP Server
 * [Tigase Monitor Console](https://github.com/tigase/tigase-monitor) - Stand-alone application for the Tigase XMPP Server monitoring and management console.
@@ -100,21 +100,25 @@ Following features are supported by Tigase XMPP Server:
 When looking for support, please first search for answers to your question in the available online channels:
 
 * Our online documentation: [Tigase Docs](https://docs.tigase.net)
-* Existing issues in relevant project, for Tigase Server it's: [Tigase XMPP Server GitHub issues](https://github.com/tigase/tigase-server/issues)
+* Existing issues in relevant project, for Tigase Server it's: [Tigase XMPP Server project tracking issues](https://tigase.dev/tigase/_server/tigase-server/~issues/)
 
-If you didn't find an answer in the resources above, feel free to submit your question as [new issue on GitHub](https://github.com/tigase/tigase-server/issues/new/choose) or, if you have valid support subscription, open [new support ticket](https://tigase.net/technical-support).
+If you didn't find an answer in the resources above, feel free to submit your question as [new issue](https://tigase.dev/tigase/_server/tigase-server/~issues/) or, if you have valid support subscription, open [new support ticket](https://tigase.net/technical-support).
 
 # Downloads
 
 You can download distribution version of the Tigase XMPP Server directly from [here](https://github.com/tigase/tigase-server/releases).
 
-If you wish to downloand SNAPSHOT build of the development version of Tigase XMPP Server you can grab it from [here](https://build.tigase.net/nightlies/dists/latest/tigase-server-dist-max.zip).
+If you wish to download SNAPSHOT build of the development version of Tigase XMPP Server you can grab it from [here](https://build.tigase.net/nightlies/dists/latest/tigase-server-dist-max.zip).
 
 # Installation and usage
 
 Documentation of the project is part of the Tigase XMPP Server distribution package. Quickstart guide is also available [here](https://docs.tigase.net/en/latest/Tigase_Administration/Quick_Start_Guide/Intro.html).
 
-# Compilation 
+## Using Docker
+
+Docker and docker compose usage is documented in [Docker readme](src/main/docker/README.md)
+
+# Compilation
 
 Compilation of the project is very easy as it is typical Maven project. All you need to do is to execute
 ````bash

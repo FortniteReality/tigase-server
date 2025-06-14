@@ -1,0 +1,120 @@
+services:
+  xmpp:
+    image: "tigase/tigase-xmpp-server:latest" # alternative tags: latest-enterprise, nightly and nightly-enterprise
+    restart: unless-stopped
+    hostname: xmpp.my-awesome-domain.net # change do your domain
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080" # for HTTP server (web-based setup, REST API, file upload extension, etc.)
+      - "5222:5222" # incoming client to server XMPP connections
+      - "5223:5223" # incoming client to server XMPP connections over TLS/SSL, including DirectTLS
+      - "5269:5269" # default s2s port, i.e.: federation support
+      - "5270:5270" # default external-component connection port
+      - "5277:5277" # inter-cluster communication
+      - "5280:5280" # default BOSH connections
+      - "5281:5281" # encrypted BOSH connections (over https)
+      - "5290:5290" # default WebSocket connections
+      - "5291:5291" # default WebSocket connections over TLS/SSL
+      - "9050:9050" # JMX Monitoring
+    volumes:
+      - ./tigase-server/etc:/home/tigase/tigase-server/etc
+      - ./tigase-server/data:/home/tigase/tigase-server/data
+      - ./tigase-server/logs:/home/tigase/tigase-server/logs
+      - ./tigase-server/certs:/home/tigase/tigase-server/certs
+      - ./tigase-server/tigasedb:/home/tigase/tigase-server/tigasedb
+#      - ./tigase-server/jars:/home/tigase/tigase-server/jars
+    environment:
+      - PRODUCTION_HEAP_SETTINGS
+      - DB_TYPE=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_ROOT_USER=root
+      - DB_ROOT_PASS=root # if changed adjust db.environment.MYSQL_ROOT_PASSWORD value
+#      - DEFAULT_VIRTUAL_DOMAIN= # (optional) set default VHost/domain of the installation (if not set, instance hostname will be used)
+#      - ADMIN_JID # you can define admin-user credentials here and it will be creatd automatically (if not using setup and providing config.tdsl file manually)
+#      - ADMIN_PASSWORD
+#      - HTTP_API_KEY_BOOTSTRAP # optional, bootstrap HTTP component API-KEY
+
+    healthcheck:
+      test: curl --fail http://localhost:8080 || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+    # ## High Load settings from https://docs.tigase.net/en/latest/Tigase_Administration/Configuration/_Configuration.html#linux-settings-for-high-load-systems
+    privileged: true
+    sysctls:
+      net.core.somaxconn: 1024
+      net.ipv4.tcp_syncookies: 0
+      net.ipv4.tcp_keepalive_time: 60
+      net.ipv4.tcp_keepalive_probes: 3
+      net.ipv4.tcp_keepalive_intvl: 90
+      net.ipv4.tcp_retries2: 4
+    ulimits:
+      nofile:
+        soft: 350000
+        hard: 350000
+  #    deploy:
+  #      resources:
+  #        limits:
+  #          memory: 1g
+  #          cpus: 4
+
+
+
+  db:
+    image: mysql:8.1
+    restart: unless-stopped
+    command: --log-bin-trust-function-creators=ON --performance-schema='OFF'
+    environment:
+      MYSQL_ROOT_PASSWORD: root # if changed adjust services.xmpp.environment.DB_ROOT_PASS; database instance is not exposed thus it's inaccessible to outside world
+    healthcheck:
+      #      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-u", "root", "-proot", "--execute", "SHOW DATABASES;"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+
+  coturn:
+    image: coturn/coturn
+    restart: unless-stopped
+    profiles: ["coturn"]
+    ## Ports are commented out because we use `network_mode: host`! Exposing ports results in lots of `docker-proxy` processed using lots of memory
+    #    ports:
+    #      - 3478:3478
+    #      - 3478:3478/udp
+    #      - 5349:5349
+    #      - 5349:5349/udp
+    #      - 8099:8099
+    #      - 49160-49200:49160-49200
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --min-port=49160
+      - --max-port=49200
+      - --realm=domain # adjust to the name of the domain pointing to the instance
+      - --user=tigase:tigase # can be adjusted but the same should be used in ext-disco Tigase configuration
+      - --lt-cred-mech
+      - --fingerprint
+      - --external-ip=$$(detect-external-ip)
+    volumes:
+      - ./coturn/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+      - ./coturn/.cache/data:/var/lib/coturn
+
+  janus:
+    image: "441807014745.dkr.ecr.us-west-2.amazonaws.com/kangaroo.net/tigase-meet-janus:nightly-2021-08-20-1"
+    restart: unless-stopped
+    profiles: ["coturn"]
+    ## Ports are commented out because we use `network_mode: host`! Exposing ports results in lots of `docker-proxy` processed using lots of memory
+    #    ports:
+    #      - "21000-21100:21000-21100"
+    network_mode: host
+    environment:
+      - 'RTP_PORT_RANGE=21000-21100'
+#   ## for some reason EBS/Docker fails to properly interpolate that even though `curl` is available on host system!
+#     - PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
