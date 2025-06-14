@@ -31,6 +31,12 @@ public class EpicGamesAuthImpl extends AuthRepositoryImpl {
 
             // Parse the permissions and return the result
             return Arrays.stream(response.getBody()).anyMatch(x -> {
+                // If the requested action is 15 (ALL), short-circuit and return true
+                if (x.action == 15) {
+                    return true;
+                }
+
+                // Opposite for 16 (DENY)
                 if ((x.action & 16) != 0) {
                     return false;
                 }
