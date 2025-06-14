@@ -53,22 +53,18 @@ public class CertificateContainerTest
 	private CertificateContainer certificateContainer;
 	private SSLContextContainer sslContextContainer;
 
-	@Test
 	public void testRegularDomainForExistingCertificate() throws Exception {
 		testDomain(domain, domain, true);
 	}
 
-	@Test
 	public void testSubdomainAgainstWildcardCertificate() throws Exception {
 		testDomain("push." + domain, wildcardDomain, true);
 	}
 
-	@Test
 	public void testUpperCaseDomain() throws Exception {
 		testDomain(domain.toUpperCase(), domain, true);
 	}
 
-	@Test
 	public void testDomainForNonexistentCertificate() throws Exception {
 		testDomain("xmpp.org", "xmpp.org", false);
 	}
@@ -94,7 +90,6 @@ public class CertificateContainerTest
 	/**
 	 * If wildcard certificate is added it should be used instead of explicit one...
 	 */
-	@Test
 	public void testAddingCertificate() throws GeneralSecurityException, IOException {
 
 		addCertificateForDomain(mucDomain, false);

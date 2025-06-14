@@ -557,7 +557,7 @@
                         </platforms>
                     </from>
                     <to>
-                        <image>tamely/realityfn-tigase-server:latest</image>
+                        <image>${jib.to.repository}</image>
                     </to>
                     <containerizingMode>packaged</containerizingMode>
                     <container>
