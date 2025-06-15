@@ -146,38 +146,67 @@ public class EpicGamesAuthImpl
     @Override
     public boolean otherAuth(final Map<String, Object> props)
             throws UserNotFoundException, TigaseDBException, AuthorizationException {
+
+        // we logging everything in this joint
+        System.out.println("=== otherAuth CALLED ===");
+        System.out.println("Props: " + props);
+        log.log(Level.INFO, "=== otherAuth CALLED ===");
+        log.log(Level.INFO, "Props: " + props);
+
         if (log.isLoggable(Level.FINEST)) {
             log.log(Level.FINEST, "otherAuth: {0}", props);
         }
 
         String proto = (String) props.get(PROTOCOL_KEY);
+        System.out.println("Protocol from props: " + proto);
+        System.out.println("PROTOCOL_KEY constant: " + PROTOCOL_KEY);
+        System.out.println("PROTOCOL_VAL_SASL constant: " + PROTOCOL_VAL_SASL);
+        System.out.println("PROTOCOL_VAL_NONSASL constant: " + PROTOCOL_VAL_NONSASL);
 
-        // TODO: this equals should be most likely replaced with == here.
-        // The property value is always set using the constant....
+        if (proto == null) {
+            System.out.println("ERROR: Protocol is null!");
+            log.log(Level.SEVERE, "Protocol is null in otherAuth");
+            throw new AuthorizationException("Protocol is null");
+        }
+
         if (proto.equals(PROTOCOL_VAL_SASL)) {
-            log.log(Level.FINEST, "sasl!!");
+            System.out.println("Taking SASL path");
+            log.log(Level.INFO, "Taking SASL authentication path");
             return saslAuth(props);
-        }    // end of if (proto.equals(PROTOCOL_VAL_SASL))
+        }
+
         if (proto.equals(PROTOCOL_VAL_NONSASL)) {
+            System.out.println("Taking NON-SASL path");
+            log.log(Level.INFO, "Taking NON-SASL authentication path");
+
             String password = (String) props.get(PASSWORD_KEY);
             BareJID user_id = (BareJID) props.get(USER_ID_KEY);
 
-            log.log(Level.FINEST, "password: " + password + ", user_id: " + user_id);
+            System.out.println("Password present: " + (password != null));
+            System.out.println("User ID: " + user_id);
+            log.log(Level.INFO, "Password present: " + (password != null) + ", User ID: " + user_id);
 
             if (password != null) {
+                System.out.println("Calling plainAuth");
+                log.log(Level.INFO, "Calling plainAuth");
                 return plainAuth(user_id, password);
             }
 
             String digest = (String) props.get(DIGEST_KEY);
-
             if (digest != null) {
+                System.out.println("Calling digestAuth");
+                log.log(Level.INFO, "Calling digestAuth");
                 String digest_id = (String) props.get(DIGEST_ID_KEY);
-
                 return digestAuth(user_id, digest, digest_id, "SHA");
             }
-        }    // end of if (proto.equals(PROTOCOL_VAL_SASL))
 
-        throw new AuthorizationException("Protocol is not supported.");
+            System.out.println("No password or digest found");
+            log.log(Level.WARNING, "No password or digest found in NON-SASL auth");
+        }
+
+        System.out.println("Protocol not supported: " + proto);
+        log.log(Level.SEVERE, "Protocol not supported: " + proto);
+        throw new AuthorizationException("Protocol is not supported: " + proto);
     }
 
     @Override
