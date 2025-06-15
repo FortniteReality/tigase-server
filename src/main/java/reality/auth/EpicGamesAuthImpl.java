@@ -38,6 +38,10 @@ public class EpicGamesAuthImpl
         this.repo = repo;
     }
 
+    public EpicGamesAuthImpl() {
+        this.repo = new EpicGamesUserRepo();
+    }
+
     private boolean verifyTokenWithPermission(String token, String permission, int action) {
         try {
             // Send HTTP request to get permissions
@@ -201,7 +205,7 @@ public class EpicGamesAuthImpl
     }
 
     public String getPassword(BareJID user) throws UserNotFoundException, TigaseDBException {
-        return null; // This shouldn't be needed if we're not doing digest auth
+        return ""; // This shouldn't be needed if we're not doing digest auth
     }
 
     @Override
