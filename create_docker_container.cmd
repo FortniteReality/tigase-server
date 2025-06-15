@@ -1,0 +1,1 @@
+docker save -o realityfn-tigase-server.tar tamely/realityfn-tigase-server:nightly
