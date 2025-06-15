@@ -20,14 +20,10 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static tigase.auth.credentials.Credentials.DEFAULT_CREDENTIAL_ID;
-
 public class EpicGamesAuthImpl
         implements AuthRepository {
 
-    public static final String ACCOUNT_STATUS_KEY = "account_status";
     protected static final Logger log = Logger.getLogger("reality.auth.EpicGamesAuthImpl");
-    protected static final String DISABLED_KEY = "disabled";
     protected static final String PASSWORD_KEY = "password";
     private static final String[] non_sasl_mechs = {"password", "digest"};
     private static final String[] sasl_mechs = {"PLAIN", "DIGEST-MD5", "CRAM-MD5"};
@@ -102,10 +98,7 @@ public class EpicGamesAuthImpl
 
     @Override
     public void addUser(BareJID user, final String password) throws UserExistsException, TigaseDBException {
-        repo.addUser(user);
-        log.log(Level.FINE, "Repo user added: " + user);
-        updateCredential(user, DEFAULT_CREDENTIAL_ID, password);
-        log.log(Level.FINE, "Password updated: " + user + ":" + password);
+        // Unneedeed
     }
 
     @Override
@@ -158,11 +151,14 @@ public class EpicGamesAuthImpl
         // TODO: this equals should be most likely replaced with == here.
         // The property value is always set using the constant....
         if (proto.equals(PROTOCOL_VAL_SASL)) {
+            log.log(Level.FINEST, "sasl!!");
             return saslAuth(props);
         }    // end of if (proto.equals(PROTOCOL_VAL_SASL))
         if (proto.equals(PROTOCOL_VAL_NONSASL)) {
             String password = (String) props.get(PASSWORD_KEY);
             BareJID user_id = (BareJID) props.get(USER_ID_KEY);
+
+            log.log(Level.FINEST, "password: " + password + ", user_id: " + user_id);
 
             if (password != null) {
                 return plainAuth(user_id, password);
@@ -194,52 +190,38 @@ public class EpicGamesAuthImpl
 
     @Override
     public void removeUser(BareJID user) throws UserNotFoundException, TigaseDBException {
-        repo.removeUser(user);
+        // Not needed
     }
 
     // Implementation of tigase.db.AuthRepository
 
     @Override
     public void updatePassword(BareJID user, final String password) throws TigaseDBException {
-        repo.setData(user, PASSWORD_KEY, password);
+        // Passwords are handled by access tokens which shouldn't be updated
     }
 
     public String getPassword(BareJID user) throws UserNotFoundException, TigaseDBException {
-        return repo.getData(user, PASSWORD_KEY);
+        return null; // This shouldn't be needed if we're not doing digest auth
     }
 
     @Override
     public AccountStatus getAccountStatus(BareJID user) throws TigaseDBException {
-        String value = repo.getData(user, ACCOUNT_STATUS_KEY);
-        return value == null ? null : AccountStatus.valueOf(value);
+        return AccountStatus.active;
     }
 
     @Override
     public boolean isUserDisabled(BareJID user) throws UserNotFoundException, TigaseDBException {
-        AccountStatus st = getAccountStatus(user);
-        if (st == null) {
-            String value = repo.getData(user, DISABLED_KEY);
-            return Boolean.parseBoolean(value);
-        } else {
-            return st == AccountStatus.disabled;
-        }
+        return false;
     }
 
     @Override
     public void setAccountStatus(BareJID user, AccountStatus value) throws TigaseDBException {
-        if (value == null) {
-            repo.removeData(user, ACCOUNT_STATUS_KEY);
-        } else {
-            repo.setData(user, ACCOUNT_STATUS_KEY, value.name());
-        }
+        // Unneeded rn
     }
 
     @Override
     public void setUserDisabled(BareJID user, Boolean value) throws UserNotFoundException, TigaseDBException {
-        AccountStatus status = getAccountStatus(user);
-        if (status == AccountStatus.active || status == AccountStatus.disabled) {
-            setAccountStatus(user, value ? AccountStatus.disabled : AccountStatus.active);
-        }
+        // Unneeded rn
     }
 
     private boolean digestAuth(BareJID user, final String digest, final String id, final String alg)
