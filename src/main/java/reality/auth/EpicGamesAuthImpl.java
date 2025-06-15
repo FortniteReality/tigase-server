@@ -39,7 +39,7 @@ public class EpicGamesAuthImpl
     }
 
     public EpicGamesAuthImpl() {
-        this.repo = new EpicGamesUserRepo();
+        this.repo = null;
     }
 
     private boolean verifyTokenWithPermission(String token, String permission, int action) {
@@ -102,7 +102,7 @@ public class EpicGamesAuthImpl
 
     @Override
     public void addUser(BareJID user, final String password) throws UserExistsException, TigaseDBException {
-        // Unneedeed
+        // Unneeded
     }
 
     @Override
@@ -116,7 +116,7 @@ public class EpicGamesAuthImpl
 
     @Override
     public String getResourceUri() {
-        return repo.getResourceUri();
+        return "epic-games://token-auth";
     }
 
     @Override
@@ -126,12 +126,12 @@ public class EpicGamesAuthImpl
 
     @Override
     public long getUsersCount() {
-        return repo.getUsersCount();
+        return 0;
     }
 
     @Override
     public long getUsersCount(String domain) {
-        return repo.getUsersCount(domain);
+        return 0;
     }
 
     @Override
