@@ -1,7 +1,6 @@
 package reality.auth;
 
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
+import org.osgi.service.device.Match;
 import reality.models.PermissionMapping;
 import tigase.auth.XmppSaslException;
 import tigase.db.*;
@@ -9,16 +8,24 @@ import tigase.util.Algorithms;
 import tigase.util.Base64;
 import tigase.xmpp.jid.BareJID;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.security.auth.callback.*;
 import javax.security.sasl.*;
 import java.io.IOException;
+import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EpicGamesAuthImpl
         implements AuthRepository {
@@ -44,30 +51,53 @@ public class EpicGamesAuthImpl
 
     private boolean verifyTokenWithPermission(String token, String permission, int action) {
         try {
-            // Send HTTP request to get permissions
-            HttpResponse<PermissionMapping[]> response = Unirest.get("https://account-public-service-prod.realityfn.org/account/api/oauth/permissions")
-                    .header("Authorization", "Bearer " + token)
-                    .asObject(PermissionMapping[].class);
+            // Create HttpClient
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
 
-            if (response.getStatus() != 200) {
-                log.log(Level.WARNING, "HTTP request failed with status: " + response.getStatus() + " - " + response.getStatusText());
+            // Create HttpRequest to permissions endpoint with method and token
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://account-public-service-prod.realityfn.org/account/api/oauth/permissions"))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(30))
+                    .GET()
+                    .build();
+
+            // Send request and get the response
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                log.log(Level.WARNING, "HTTP request failed with status: " + response.statusCode() + " - " + response.body());
                 return false;
             }
 
-            // Parse the permissions and return the result
-            return Arrays.stream(response.getBody()).anyMatch(x -> {
-                // If the requested action is 15 (ALL), short-circuit and return true
-                if (x.action == 15) {
-                    return true;
-                }
+            log.log(Level.FINEST, "Got response body {0}", response.body());
 
-                // Opposite for 16 (DENY)
-                if ((x.action & 16) != 0) {
-                    return false;
-                }
+            // Parse JSON response to Permission array
+            PermissionMapping[] permissions = parsePermissionsFromJson(response.body());
+
+            log.log(Level.FINEST, "Response has {0} permissions", permissions.length);
+
+            // Parse the permissions and return the result
+            return Arrays.stream(permissions).anyMatch(x -> {
+                log.log(Level.FINEST, "Token {0} has resource {1} with action {2}", new Object[] {token, x.resource, x.action});
 
                 boolean actionMatches = (x.action & action) == action;
                 boolean resourceMatches = matchesResourcePattern(x.resource, permission);
+
+                if (resourceMatches) {
+                    // If the requested action is 15 (ALL), short-circuit and return true
+                    if (x.action == 15) {
+                        return true;
+                    }
+
+                    // Opposite for 16 (DENY)
+                    if ((x.action & 16) != 0) {
+                        return false;
+                    }
+                }
 
                 return resourceMatches && actionMatches;
             });
@@ -93,6 +123,56 @@ public class EpicGamesAuthImpl
         catch (Exception e) {
             return false; // Should never happen
         }
+    }
+
+    private PermissionMapping[] parsePermissionsFromJson(String jsonString) {
+        List<PermissionMapping> permissions = new ArrayList<>();
+
+        // Remove the outer brackets and whitespace
+        jsonString = jsonString.trim();
+        if (jsonString.startsWith("[")) {
+            jsonString = jsonString.substring(1);
+        }
+        if (jsonString.endsWith("]")) {
+            jsonString = jsonString.substring(0, jsonString.length() - 1);
+        }
+
+        // Split by objects (looking for },{ pattern)
+        String[] objects = jsonString.split("\\},\\s*\\{");
+
+        for (String obj : objects) {
+            // Clean up the object string
+            obj = obj.trim();
+            if (!obj.startsWith("{")) {
+                obj = "{" + obj;
+            }
+            if (!obj.endsWith("}")) {
+                obj = obj + "}";
+            }
+
+            // Extract the permissions manually
+            PermissionMapping mapping = new PermissionMapping();
+
+            // Extract the action - we are looking for "action":number
+            String actionPattern = "\"action\"\\s*:\\s*(\\d+)";
+            Pattern pattern = Pattern.compile(actionPattern);
+            Matcher matcher = pattern.matcher(obj);
+            if (matcher.find()) {
+                mapping.action = Integer.parseInt(matcher.group(1));
+            }
+
+            // Extract resource (looking for "resource":"value")
+            String resourcePattern = "\"resource\"\\s*:\\s*\"([^\"]+)\"";
+            pattern = java.util.regex.Pattern.compile(resourcePattern);
+            matcher = pattern.matcher(obj);
+            if (matcher.find()) {
+                mapping.resource = matcher.group(1);
+            }
+
+            permissions.add(mapping);
+        }
+
+        return permissions.toArray(new PermissionMapping[0]);
     }
 
     @Override
@@ -146,67 +226,36 @@ public class EpicGamesAuthImpl
     @Override
     public boolean otherAuth(final Map<String, Object> props)
             throws UserNotFoundException, TigaseDBException, AuthorizationException {
-
-        // we logging everything in this joint
-        System.out.println("=== otherAuth CALLED ===");
-        System.out.println("Props: " + props);
-        log.log(Level.INFO, "=== otherAuth CALLED ===");
-        log.log(Level.INFO, "Props: " + props);
-
         if (log.isLoggable(Level.FINEST)) {
             log.log(Level.FINEST, "otherAuth: {0}", props);
         }
 
         String proto = (String) props.get(PROTOCOL_KEY);
-        System.out.println("Protocol from props: " + proto);
-        System.out.println("PROTOCOL_KEY constant: " + PROTOCOL_KEY);
-        System.out.println("PROTOCOL_VAL_SASL constant: " + PROTOCOL_VAL_SASL);
-        System.out.println("PROTOCOL_VAL_NONSASL constant: " + PROTOCOL_VAL_NONSASL);
 
-        if (proto == null) {
-            System.out.println("ERROR: Protocol is null!");
-            log.log(Level.SEVERE, "Protocol is null in otherAuth");
-            throw new AuthorizationException("Protocol is null");
-        }
-
+        // TODO: this equals should be most likely replaced with == here.
+        // The property value is always set using the constant....
         if (proto.equals(PROTOCOL_VAL_SASL)) {
-            System.out.println("Taking SASL path");
-            log.log(Level.INFO, "Taking SASL authentication path");
+            log.log(Level.WARNING, "WE ARE SO FUCKED THIS IS USING SASL!!");
             return saslAuth(props);
-        }
-
+        }    // end of if (proto.equals(PROTOCOL_VAL_SASL))
         if (proto.equals(PROTOCOL_VAL_NONSASL)) {
-            System.out.println("Taking NON-SASL path");
-            log.log(Level.INFO, "Taking NON-SASL authentication path");
-
             String password = (String) props.get(PASSWORD_KEY);
             BareJID user_id = (BareJID) props.get(USER_ID_KEY);
 
-            System.out.println("Password present: " + (password != null));
-            System.out.println("User ID: " + user_id);
-            log.log(Level.INFO, "Password present: " + (password != null) + ", User ID: " + user_id);
-
             if (password != null) {
-                System.out.println("Calling plainAuth");
-                log.log(Level.INFO, "Calling plainAuth");
                 return plainAuth(user_id, password);
             }
 
             String digest = (String) props.get(DIGEST_KEY);
+
             if (digest != null) {
-                System.out.println("Calling digestAuth");
-                log.log(Level.INFO, "Calling digestAuth");
                 String digest_id = (String) props.get(DIGEST_ID_KEY);
+
                 return digestAuth(user_id, digest, digest_id, "SHA");
             }
+        }    // end of if (proto.equals(PROTOCOL_VAL_SASL))
 
-            System.out.println("No password or digest found");
-            log.log(Level.WARNING, "No password or digest found in NON-SASL auth");
-        }
-
-        System.out.println("Protocol not supported: " + proto);
-        log.log(Level.SEVERE, "Protocol not supported: " + proto);
-        throw new AuthorizationException("Protocol is not supported: " + proto);
+        throw new AuthorizationException("Protocol is not supported.");
     }
 
     @Override

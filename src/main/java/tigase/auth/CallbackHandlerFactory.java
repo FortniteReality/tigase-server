@@ -17,8 +17,8 @@
  */
 package tigase.auth;
 
+import reality.auth.EpicCallbackHandler;
 import tigase.auth.callbacks.CallbackHandlerFactoryIfc;
-import tigase.auth.impl.PlainCallbackHandler;
 import tigase.auth.impl.ScramCallbackHandler;
 import tigase.auth.impl.XTokenCallbackHandler;
 import tigase.auth.mechanisms.*;
@@ -44,7 +44,7 @@ public class CallbackHandlerFactory
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		String handlerClassName = getHandlerClassname(mechanismName, session, repo);
 		if (handlerClassName == null) {
-			handlerClassName = PlainCallbackHandler.class.getName();
+			handlerClassName = EpicCallbackHandler.class.getName();
 		}
 		@SuppressWarnings("unchecked") Class<CallbackHandler> handlerClass = (Class<CallbackHandler>) Class.forName(
 				handlerClassName);
