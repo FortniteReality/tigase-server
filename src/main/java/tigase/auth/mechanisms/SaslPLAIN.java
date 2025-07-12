@@ -68,7 +68,7 @@ public class SaslPLAIN
 			throw new XmppSaslException(SaslError.malformed_request, "Authorization identity string is too long");
 		}
 
-		if (passwd.length() > 255) {
+		if (passwd.length() > 255 && !passwd.startsWith("eg1")) {
 			throw new XmppSaslException(SaslError.malformed_request, "Password string is too long");
 		}
 
