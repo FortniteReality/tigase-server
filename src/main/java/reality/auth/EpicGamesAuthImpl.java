@@ -3,9 +3,18 @@ package reality.auth;
 import reality.models.PermissionMapping;
 import tigase.auth.XmppSaslException;
 import tigase.db.*;
+import tigase.server.Iq;
+import tigase.server.Packet;
 import tigase.util.Algorithms;
 import tigase.util.Base64;
+import tigase.util.stringprep.TigaseStringprepException;
+import tigase.xml.Element;
+import tigase.xmpp.StanzaType;
+import tigase.xmpp.XMPPException;
+import tigase.xmpp.XMPPResourceConnection;
+import tigase.xmpp.impl.BindResource;
 import tigase.xmpp.jid.BareJID;
+import tigase.xmpp.jid.JID;
 
 import javax.security.auth.callback.*;
 import javax.security.sasl.*;
@@ -74,7 +83,6 @@ public class EpicGamesAuthImpl implements AuthRepository {
         if (tokenVerified) {
             try {
                 if (!repo.userExists(user)) {
-
                     repo.addUser(user);
                     repo.setData(user, "password", password);
                 } else {
@@ -110,8 +118,6 @@ public class EpicGamesAuthImpl implements AuthRepository {
             throw new AuthorizationException("Sasl exception.", e);
         }
     }
-
-
 
     @Override
     public String getPassword(BareJID user) throws UserNotFoundException, TigaseDBException {
