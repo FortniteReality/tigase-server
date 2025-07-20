@@ -30,6 +30,10 @@ public class EpicGamesAuthImpl implements AuthRepository {
 
     private final UserRepository repo;
 
+    public EpicGamesAuthImpl() {
+        repo = new EpicUserRepositoryImpl();
+    }
+
     /**
      * Creates a new EpicGamesAuthImpl instance.
      * @param repo The user repository to use for storing user data. This is injected
