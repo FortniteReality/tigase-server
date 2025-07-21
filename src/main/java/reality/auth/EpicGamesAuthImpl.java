@@ -37,23 +37,9 @@ public class EpicGamesAuthImpl implements AuthRepository {
 
     private static final String[] sasl_mechs = {"PLAIN"};
 
-    private final UserRepository repo;
+    private final UserRepository repo = EpicUserRepositoryImpl.getInstance();
 
-    public EpicGamesAuthImpl() {
-        repo = new EpicUserRepositoryImpl();
-    }
-
-    /**
-     * Creates a new EpicGamesAuthImpl instance.
-     * @param repo The user repository to use for storing user data. This is injected
-     *             from the server configuration (config.tdsl).
-     */
-    public EpicGamesAuthImpl(UserRepository repo) {
-        if (repo == null) {
-            throw new IllegalArgumentException("UserRepository cannot be null.");
-        }
-        this.repo = repo;
-    }
+    public EpicGamesAuthImpl() {}
 
     @Override
     public boolean otherAuth(final Map<String, Object> props)

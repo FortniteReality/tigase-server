@@ -16,6 +16,13 @@ public class EpicUserRepositoryImpl implements UserRepository {
 
     private static final Map<BareJID, UserData> users = new ConcurrentHashMap<>();
 
+
+    private static final EpicUserRepositoryImpl INSTANCE = new EpicUserRepositoryImpl();
+
+    public static EpicUserRepositoryImpl getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public void addUser(BareJID jid) throws UserExistsException, TigaseDBException {
         UserData previous = users.putIfAbsent(jid, new UserData());
