@@ -2262,7 +2262,7 @@ public class SessionManager
 		return def * 10;
 	}
 
-	protected XMPPSession getSession(BareJID jid) {
+	public XMPPSession getSession(BareJID jid) {
 		return sessionsByNodeId.get(jid);
 	}
 

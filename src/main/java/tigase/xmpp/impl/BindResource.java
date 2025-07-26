@@ -57,7 +57,7 @@ public class BindResource
 	private static final String[] XMLNSS = {XMLNS};
 	private static final Element[] FEATURES = {new Element(EL_NAME, new String[]{"xmlns"}, new String[]{XMLNS})};
 	private static final Element[] DISCO_FEATURES = {new Element("feature", new String[]{"var"}, new String[]{XMLNS})};
-	private static final String RESOURCE_PREFIX_DEF = "tigase-";
+	private static final String RESOURCE_PREFIX_DEF = "reality-";
 	private static int resGenerator = 0;
 	private String resourceDefPrefix = RESOURCE_PREFIX_DEF;
 	@ConfigField(desc = "Automatic resource assignment prefix", alias = DEF_RESOURCE_PREFIX_PROP_KEY)

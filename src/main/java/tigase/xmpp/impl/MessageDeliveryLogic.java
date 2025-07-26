@@ -45,7 +45,7 @@ public class MessageDeliveryLogic implements MessageDeliveryProviderIfc {
 	protected static final String XMLNS = "jabber:client";
 	private static final String DELIVERY_RULES_KEY = "delivery-rules";
 	private static final String SILENTLY_IGNORE_ERROR_KEY = "silently-ignore-message";
-	public static Predicate<XMPPResourceConnection> VIABLE_FOR_MESSAGE_DELIVERY = (conn) -> conn.getPriority() >= 0;
+	public static Predicate<XMPPResourceConnection> VIABLE_FOR_MESSAGE_DELIVERY = (conn) -> true;
 	@ConfigField(desc = "Message delivery rules", alias = DELIVERY_RULES_KEY)
 	private MessageDeliveryRules deliveryRules = MessageDeliveryRules.inteligent;
 	@ConfigField(desc = "Silently ignore errors", alias = SILENTLY_IGNORE_ERROR_KEY)
@@ -93,6 +93,7 @@ public class MessageDeliveryLogic implements MessageDeliveryProviderIfc {
 					if (connectionId.equals(packet.getPacketFrom())) {
 						Packet forward = packet.copyElementOnly();
 						forward.setStableId(packet.getStableId());
+
 						results.offer(forward);
 						// this would cause message packet to be stored in offline storage and will not
 						// send recipient-unavailable error but it will behave the same as a message to
@@ -114,8 +115,11 @@ public class MessageDeliveryLogic implements MessageDeliveryProviderIfc {
 
 					// If the message is sent to BareJID then the message is delivered to
 					// all resources
+					System.out.println("OH FUCK THERE'S NO RESOURCE WE'RE COOKED!!!!!!!!");
+					log.info("[ROUTER] Final packet to=" + packet.getPacketTo());
 					conns.addAll(getConnectionsForMessageDelivery(session));
 				} else {
+					log.info("[ROUTER] Final packet to=" + packet.getPacketTo());
 
 					// Otherwise only to the given resource or sent back as error.
 					XMPPResourceConnection con = session.getParentSession() == null

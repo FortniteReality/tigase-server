@@ -625,7 +625,7 @@ public class XMPPResourceConnection
 			throw new NotAuthorizedException(NOT_AUTHORIZED_MSG);
 		}    // end of if (username == null)
 
-		return userJid.getBareJID().equals(bareJID);
+		return userJid.getBareJID().toString().equalsIgnoreCase(bareJID.toString());
 	}
 
 	/**

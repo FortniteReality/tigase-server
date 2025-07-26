@@ -33,9 +33,11 @@ import tigase.xmpp.jid.JID;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static tigase.server.Presence.PRESENCE_PRIORITY_PATH;
 import static tigase.xmpp.impl.roster.RosterAbstract.*;
 
 /**
